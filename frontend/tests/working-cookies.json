@@ -1,0 +1,292 @@
+[
+  {
+    "name": "_csrf",
+    "value": "f0XOL4B9eygYKjX6cNl6aiim",
+    "domain": "auth.pitch.com",
+    "path": "/usernamepassword/login",
+    "expires": 1765325549.144334,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_ga_3KLXK377BT",
+    "value": "GS2.1.s1764294202$o3$g0$t1764294202$j60$l0$h0",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1798854202.387566,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_gcl_au",
+    "value": "1.1.533740213.1764205012",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1771981012,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_gid",
+    "value": "GA1.2.1114655173.1764453271",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1764541900,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "ajs_anonymous_id",
+    "value": "280f9af3-bc80-4d4c-a6c0-b5780d98f535",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1795991505,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "ajs_group_id",
+    "value": "115577da-7857-4831-9fc4-c520aa2009cb",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1795991500,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "ajs_user_id",
+    "value": "440593d6-6785-405f-ac0f-ac98cadae0e4",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1795991505,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "intercom-device-id-alrusdv4",
+    "value": "dd5153ac-f941-43ec-a495-f4d8ebce8162",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1787785501,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "intercom-id-alrusdv4",
+    "value": "bd867d46-f3c5-4f74-94fd-5f7c3c3f4938",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1787609923,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "intercom-session-alrusdv4",
+    "value": "Qzd4U3JxWlMyVFBXWVNNV082dGxiaWZhY3ZrY1VQMTRJVFZyZ2VLODJBY3Y3YWd4cjdrSTlUeElVOXdZK1kxZWcvRGZZN0U4K01yQUNKbCtXb2o4TUl4TlAvc3cvRXcyR251b0ZtaldJOG89LS1sVlpSaExJTnc4eFJiUHMxb3RGa1JBPT0=--a9409574473f5310db488599ff31a88cffd533ea",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1765060302,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "IS_PITCH_USER",
+    "value": "true",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1766880780,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_legacy_auth0.TAZUl8D8OK53lYBIQ5mZo0zu07edCwP0.is.authenticated",
+    "value": "true",
+    "domain": "app.pitch.com",
+    "path": "/",
+    "expires": 1764547979,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "auth0.TAZUl8D8OK53lYBIQ5mZo0zu07edCwP0.is.authenticated",
+    "value": "true",
+    "domain": "app.pitch.com",
+    "path": "/",
+    "expires": 1764547979,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__spdt",
+    "value": "0809a6bed29e4f7895c98215fa12a324",
+    "domain": "app.pitch.com",
+    "path": "/",
+    "expires": 1795997547,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Strict"
+  },
+  {
+    "name": "_ttp",
+    "value": "36Au9uFUHnWH1M3UPWScNO589ms",
+    "domain": ".tiktok.com",
+    "path": "/",
+    "expires": 1798157579.207119,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "_ga",
+    "value": "GA1.1.1938862237.1764205012",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1799021579.20562,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_tt_enable_cookie",
+    "value": "1",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1798157579,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_ttp",
+    "value": "01KB91N4HSBNJZTX51H7BZ8C6W_.tt.1",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1798157579,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "did",
+    "value": "s%3Av0%3A7f9bb967-fa24-425f-a41e-cbbf93bb898b.ETqI%2FflCFwVXaGTocihF8oMx9chmqQDWuXUMBTy5etI",
+    "domain": "auth.pitch.com",
+    "path": "/",
+    "expires": 1796019147.897921,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "did_compat",
+    "value": "s%3Av0%3A7f9bb967-fa24-425f-a41e-cbbf93bb898b.ETqI%2FflCFwVXaGTocihF8oMx9chmqQDWuXUMBTy5etI",
+    "domain": "auth.pitch.com",
+    "path": "/",
+    "expires": 1796019147.89812,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "__cf_bm",
+    "value": "Qf_yjyOPbW.lQ97DKSwDEOGbpDZ5jTqEKHdpuJij8_Y-1764461549-1.0.1.1-LXHA1rklKOhT6KUacWYDR1eIG4DL4jbtWX6967aWrQADffLCxGKXKxfmy55SLwoI",
+    "domain": ".auth.pitch.com",
+    "path": "/",
+    "expires": 1764463348.89818,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "auth0",
+    "value": "s%3Axfc8iaRZb-Hjg0Zmr40fFA7rSXNYnNKF.NYF%2BTsMuZkuGpQA6OpHw76ht%2FyJLufW2dnP2SxWnT48",
+    "domain": "auth.pitch.com",
+    "path": "/",
+    "expires": 1773101577.484119,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "auth0_compat",
+    "value": "s%3Axfc8iaRZb-Hjg0Zmr40fFA7rSXNYnNKF.NYF%2BTsMuZkuGpQA6OpHw76ht%2FyJLufW2dnP2SxWnT48",
+    "domain": "auth.pitch.com",
+    "path": "/",
+    "expires": 1773101577.484242,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_dd_s",
+    "value": "aid=28258749-19ef-4daa-a8a7-47450a2df8b1&logs=1&id=688c05b1-2405-4720-8cf4-dfa3e31711a3&created=1764461547807&expire=1764462479101",
+    "domain": "app.pitch.com",
+    "path": "/",
+    "expires": 1795997579,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Strict"
+  },
+  {
+    "name": "_ga_7T55EQD4M7",
+    "value": "GS2.1.s1764461548$o4$g1$t1764461579$j29$l0$h0",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1799021579.166926,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_cioid",
+    "value": "440593d6-6785-405f-ac0f-ac98cadae0e4",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1795997580,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "ttcsid_CL5QS7BC77UCAD77NA9G",
+    "value": "1764461548091::xXNl66LroKN-_zZGC18E.1.1764461581088.0",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1798157581,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "ttcsid",
+    "value": "1764461548091::tQOn8BiY_VLXi4AkO94O.1.1764461581088.0",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1798157581,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_ga_GTW22Q6PSF",
+    "value": "GS2.1.s1764461548$o5$g1$t1764461582$j26$l0$h0",
+    "domain": ".pitch.com",
+    "path": "/",
+    "expires": 1799021582.08757,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  }
+]

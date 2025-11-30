@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Generation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d1117;
+            --card: #18181f;
+            --card-hover: #1f1f28;
+            --accent: #7c5cff;
+            --text: #ffffff;
+            --text-dim: #9ca3af;
+            --text-muted: #6b7280;
+            --border: rgba(124, 92, 255, 0.25);
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .bg {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(124, 92, 255, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        #particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .header {
+            position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+            text-align: center; z-index: 100; opacity: 1;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .header.hidden { opacity: 0; transform: translateX(-50%) translateY(-20px); pointer-events: none; }
+        .header h1 {
+            font-size: 26px; font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header p { font-size: 14px; color: var(--text-muted); margin-top: 6px; }
+        .canvas { position: fixed; inset: 0; overflow: hidden; cursor: grab; }
+        .canvas:active { cursor: grabbing; }
+        .viewport { position: absolute; width: 100%; height: 100%; transform-origin: 0 0; }
+        .lines { position: absolute; top: 0; left: 0; width: 10000px; height: 10000px; pointer-events: none; overflow: visible; }
+        .line {
+            fill: none; stroke: url(#lineGradient); stroke-width: 2; stroke-linecap: round;
+            filter: drop-shadow(0 0 6px rgba(124, 92, 255, 0.4));
+        }
+        .node {
+            position: absolute;
+            background: linear-gradient(145deg, var(--card) 0%, rgba(24, 24, 31, 0.95) 100%);
+            border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; width: 220px;
+            cursor: pointer; opacity: 0; transform: scale(0.92) translateX(-8px);
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, border-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(124, 92, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+        .node.visible { opacity: 1; transform: scale(1) translateX(0); }
+        .node:hover {
+            background: linear-gradient(145deg, var(--card-hover) 0%, rgba(31, 31, 40, 0.95) 100%);
+            border-color: var(--accent);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 50px rgba(124, 92, 255, 0.15);
+        }
+        .node.visible:hover { transform: scale(1.02) translateY(-2px); }
+        .dot {
+            position: absolute; width: 10px; height: 10px; background: var(--accent);
+            border-radius: 50%; top: 50%; transform: translateY(-50%);
+            box-shadow: 0 0 10px rgba(124, 92, 255, 0.6);
+        }
+        .dot-left { left: -5px; }
+        .dot-right { right: -5px; }
+        .node.is-root .dot-left { display: none; }
+        .badge {
+            display: inline-block; padding: 3px 10px;
+            background: linear-gradient(135deg, var(--accent) 0%, #9f7aea 100%);
+            color: white; font-size: 9px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; border-radius: 6px; margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(124, 92, 255, 0.3);
+        }
+        .badge.b { background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); }
+        .badge.l { background: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%); }
+        .badge.finished { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); }
+        .badge.final { background: linear-gradient(135deg, #d946ef 0%, #f0abfc 100%); }
+        .node-text { font-size: 14px; font-weight: 500; line-height: 1.5; margin-bottom: 14px; color: var(--text); }
+        .btns {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+            margin-top: 12px;
+        }
+        .btn {
+            flex: 1;
+            padding: 9px 10px;
+            background: rgba(124, 92, 255, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        .btn:hover {
+            background: var(--accent); border-color: var(--accent); color: white;
+            transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
+        }
+        .btn:disabled {
+            opacity: 0.4; cursor: not-allowed; pointer-events: none;
+        }
+        .btn.open-pitch {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            border-color: #10b981;
+            color: white;
+            font-weight: 600;
+        }
+        .btn.open-pitch:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            border-color: #059669;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+            background: linear-gradient(145deg, var(--card) 0%, rgba(24, 24, 31, 0.98) 100%);
+            border: 1px solid var(--border); border-radius: 12px;
+            padding: 16px 20px; min-width: 300px; max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 50px rgba(124, 92, 255, 0.2);
+            backdrop-filter: blur(12px);
+            transform: translateY(120%); opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-content { display: flex; align-items: center; gap: 12px; }
+        .toast-icon { font-size: 24px; }
+        .toast-text { flex: 1; font-size: 14px; line-height: 1.5; }
+        .toast-title { font-weight: 600; margin-bottom: 4px; }
+        .toast-message { color: var(--text-dim); font-size: 13px; }
+
+        /* Change Request Modal */
+        .change-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            opacity: 1; transition: opacity 0.3s;
+        }
+        .change-modal.hidden { opacity: 0; pointer-events: none; }
+        .change-modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+        }
+        .change-modal-content {
+            position: relative; width: 90%; max-width: 600px; height: 80vh;
+            background: linear-gradient(145deg, var(--card) 0%, rgba(24, 24, 31, 0.98) 100%);
+            border: 1px solid var(--border); border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(124, 92, 255, 0.3);
+            backdrop-filter: blur(20px); display: flex; flex-direction: column;
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .change-modal:not(.hidden) .change-modal-content { transform: scale(1); }
+        .change-modal-header {
+            padding: 20px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .change-modal-header h3 {
+            margin: 0; font-size: 18px; font-weight: 600; color: var(--text);
+        }
+        .close-btn {
+            background: none; border: none; color: var(--text-dim);
+            font-size: 28px; line-height: 1; cursor: pointer;
+            padding: 0; width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .close-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
+        .change-messages {
+            flex: 1; overflow-y: auto; padding: 20px 24px;
+            display: flex; flex-direction: column; gap: 16px;
+        }
+        .message {
+            display: flex; max-width: 80%; animation: slideIn 0.3s ease;
+        }
+        .message.user { align-self: flex-end; }
+        .message.assistant { align-self: flex-start; }
+        .message-content {
+            padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--accent) 0%, #9b7dff 100%);
+            color: white; border-bottom-right-radius: 4px;
+        }
+        .message.assistant .message-content {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+            color: var(--text); border-bottom-left-radius: 4px;
+        }
+        .change-input-area {
+            padding: 16px 24px; border-top: 1px solid var(--border);
+            display: flex; gap: 12px; align-items: flex-end;
+        }
+        .change-input-area textarea {
+            flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+            border-radius: 12px; padding: 12px 16px; color: var(--text);
+            font-family: inherit; font-size: 14px; resize: none; outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .change-input-area textarea:focus {
+            border-color: var(--accent); background: rgba(255, 255, 255, 0.08);
+        }
+        .send-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #9b7dff 100%);
+            border: none; border-radius: 10px; padding: 12px 16px;
+            color: white; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
+        }
+        .send-btn:hover {
+            transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 92, 255, 0.4);
+        }
+        .send-btn:active { transform: translateY(0); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .empty {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; z-index: 50; opacity: 1;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .empty.hidden { opacity: 0; transform: translate(-50%, -50%) scale(0.95); pointer-events: none; }
+        .empty-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, rgba(124, 92, 255, 0.2) 0%, rgba(124, 92, 255, 0.05) 100%);
+            border: 1px solid var(--border); border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; color: var(--accent);
+            box-shadow: 0 8px 32px rgba(124, 92, 255, 0.15);
+        }
+        .empty h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: #fff; }
+        .empty p { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+        .empty-input { display: flex; gap: 10px; max-width: 420px; margin: 0 auto; }
+        .empty-input input {
+            flex: 1; background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 14px 18px; font-size: 15px;
+            color: var(--text); font-family: inherit; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .empty-input input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15); }
+        .empty-input input::placeholder { color: var(--text-muted); }
+        .empty-input button {
+            padding: 14px 24px; background: linear-gradient(135deg, var(--accent) 0%, #9f7aea 100%);
+            border: none; border-radius: 12px; color: white; font-weight: 600; font-size: 14px;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(124, 92, 255, 0.3);
+        }
+        .empty-input button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 92, 255, 0.4); }
+
+        /* Variant Selection Panel */
+        .variant-panel {
+            position: fixed; top: 0; right: 0; width: 100%; height: 100%;
+            z-index: 10000; pointer-events: none;
+        }
+        .variant-panel:not(.hidden) { pointer-events: all; }
+        .variant-panel-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .variant-panel:not(.hidden) .variant-panel-overlay { opacity: 1; }
+        .variant-panel-content {
+            position: absolute; top: 0; right: 0; width: 480px; height: 100%;
+            background: linear-gradient(145deg, var(--card) 0%, rgba(24, 24, 31, 0.98) 100%);
+            border-left: 1px solid var(--border);
+            box-shadow: -10px 0 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(124, 92, 255, 0.2);
+            backdrop-filter: blur(20px);
+            display: flex; flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .variant-panel:not(.hidden) .variant-panel-content { transform: translateX(0); }
+        .variant-panel-header {
+            padding: 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            background: linear-gradient(180deg, rgba(124, 92, 255, 0.1) 0%, transparent 100%);
+        }
+        .variant-panel-header h2 {
+            margin: 0; font-size: 20px; font-weight: 600; color: var(--text);
+        }
+        .variant-cards {
+            flex: 1; overflow-y: auto; padding: 24px;
+            display: flex; flex-direction: column; gap: 16px;
+        }
+        .variant-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 2px solid var(--border);
+            border-radius: 12px; padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .variant-card:hover {
+            border-color: rgba(124, 92, 255, 0.5);
+            box-shadow: 0 4px 20px rgba(124, 92, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .variant-card.selected {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(124, 92, 255, 0.15) 0%, rgba(124, 92, 255, 0.05) 100%);
+            box-shadow: 0 0 30px rgba(124, 92, 255, 0.3);
+        }
+        .variant-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .variant-card-title {
+            font-size: 16px; font-weight: 600; color: var(--text);
+        }
+        .variant-card.selected .variant-card-title {
+            color: var(--accent);
+        }
+        .variant-check {
+            width: 24px; height: 24px; border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s;
+        }
+        .variant-card.selected .variant-check {
+            border-color: var(--accent);
+            background: var(--accent);
+        }
+        .variant-check svg {
+            width: 14px; height: 14px; color: white;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .variant-card.selected .variant-check svg { opacity: 1; }
+        .variant-card-buttons {
+            display: flex; gap: 8px; margin-top: 16px;
+        }
+        .variant-btn {
+            flex: 1; padding: 10px 16px; border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.05); color: var(--text);
+            border-radius: 8px; font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .variant-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent);
+        }
+        .variant-btn.primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #9b7dff 100%);
+            border-color: var(--accent);
+        }
+        .variant-btn.primary:hover {
+            background: linear-gradient(135deg, #9b7dff 0%, #b89fff 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+    <canvas id="particles"></canvas>
+    <div class="header" id="header">
+        <h1>Slide Generation</h1>
+        <p>Transform your ideas into visual branches</p>
+    </div>
+    <div class="empty" id="empty">
+        <div class="empty-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="32" height="32">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </div>
+        <h2>What would you like to explore?</h2>
+        <p>Enter a topic and watch your ideas branch out</p>
+        <div class="empty-input">
+            <input type="text" id="input" placeholder="Enter your topic..." autofocus>
+            <button id="go">Generate</button>
+        </div>
+    </div>
+    <div class="canvas">
+        <div class="viewport" id="viewport">
+            <svg class="lines" id="lines">
+                <defs>
+                    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#7c5cff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div id="nodes"></div>
+        </div>
+    </div>
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <div class="toast-icon">🚀</div>
+            <div class="toast-text">
+                <div class="toast-title">Automation Started</div>
+                <div class="toast-message">Playwright is opening Pitch.com...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Request Modal -->
+    <div id="changeModal" class="change-modal hidden">
+        <div class="change-modal-overlay" onclick="closeChangeModal()"></div>
+        <div class="change-modal-content">
+            <div class="change-modal-header">
+                <h3>Request Changes</h3>
+                <button class="close-btn" onclick="closeChangeModal()">×</button>
+            </div>
+
+            <div class="change-messages" id="changeMessages">
+                <!-- Messages will appear here -->
+            </div>
+
+            <div class="change-input-area">
+                <textarea id="changeInput" placeholder="Describe what you'd like to change..." rows="3"></textarea>
+                <button class="send-btn" onclick="sendChangeMessage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Variant Selection Panel -->
+    <div id="variantPanel" class="variant-panel hidden">
+        <div class="variant-panel-overlay" onclick="closeVariantPanel()"></div>
+        <div class="variant-panel-content">
+            <div class="variant-panel-header">
+                <h2 id="variantPanelTitle">Choose Variant</h2>
+                <button class="close-btn" onclick="closeVariantPanel()">×</button>
+            </div>
+            <div id="variantCards" class="variant-cards">
+                <!-- Cards inserted dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SLIDE_CONFIG, SLIDE_NAMES, getSlideConfig } from './config/slides.js';
+
+        const particleCanvas = document.getElementById('particles');
+        const pCtx = particleCanvas.getContext('2d');
+        let particles = [];
+        function resizeParticleCanvas() { particleCanvas.width = window.innerWidth; particleCanvas.height = window.innerHeight; }
+        function createParticles() {
+            particles = [];
+            for (let i = 0; i < 60; i++) {
+                particles.push({ x: Math.random() * particleCanvas.width, y: Math.random() * particleCanvas.height,
+                    radius: Math.random() * 2 + 0.5, opacity: Math.random() * 0.5 + 0.1,
+                    vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+                    pulseSpeed: Math.random() * 0.02 + 0.01, pulsePhase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        function drawParticles() {
+            pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            const time = Date.now() * 0.001;
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0) p.x = particleCanvas.width; if (p.x > particleCanvas.width) p.x = 0;
+                if (p.y < 0) p.y = particleCanvas.height; if (p.y > particleCanvas.height) p.y = 0;
+                const finalOpacity = p.opacity * (Math.sin(time * p.pulseSpeed * 10 + p.pulsePhase) * 0.3 + 0.7);
+                const gradient = pCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius * 3);
+                gradient.addColorStop(0, 'rgba(124, 92, 255, ' + finalOpacity + ')');
+                gradient.addColorStop(0.5, 'rgba(124, 92, 255, ' + (finalOpacity * 0.3) + ')');
+                gradient.addColorStop(1, 'rgba(124, 92, 255, 0)');
+                pCtx.beginPath(); pCtx.arc(p.x, p.y, p.radius * 3, 0, Math.PI * 2); pCtx.fillStyle = gradient; pCtx.fill();
+                pCtx.beginPath(); pCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                pCtx.fillStyle = 'rgba(167, 139, 250, ' + finalOpacity + ')'; pCtx.fill();
+            });
+            requestAnimationFrame(drawParticles);
+        }
+        window.addEventListener('resize', resizeParticleCanvas);
+        resizeParticleCanvas(); createParticles(); drawParticles();
+
+        const NODE_W = 220, H_GAP = 320, V_GAP = 140, ANIM_DURATION = 1800;
+        let nodes = [], conns = [], nextId = 0, offset = { x: 0, y: 0 }, zoom = 1;
+        let finalSlideNode = null; // Shared "Final Slide" node for all 3 slides
+        let changeMessages = []; // Chat messages for change requests
+        let presentationsCreated = false; // Track if parallel presentations are ready
+        let eventSource = null; // SSE connection for instant notifications
+        const $ = id => document.getElementById(id);
+
+        // Toast notification system
+        const toastEl = $('toast');
+        function showToast(title, message, icon = '🚀', duration = 5000) {
+            const titleEl = toastEl.querySelector('.toast-title');
+            const messageEl = toastEl.querySelector('.toast-message');
+            const iconEl = toastEl.querySelector('.toast-icon');
+
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            iconEl.textContent = icon;
+
+            toastEl.classList.add('show');
+
+            setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, duration);
+        }
+
+        // Server-Sent Events - backend notifies us when presentations are ready (no polling!)
+        function startListeningForCompletion() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            console.log('📡 Connecting to presentation status stream...');
+            eventSource = new EventSource('http://localhost:3000/api/presentation-events');
+
+            eventSource.onopen = () => {
+                console.log('📡 SSE connection opened');
+            };
+
+            eventSource.onmessage = (event) => {
+                console.log('📡 SSE message received:', event.data);
+
+                if (event.data === 'ready') {
+                    presentationsCreated = true;
+                    enableAllButtons();
+                    loadPresentationData(); // Load variant data
+                    showToast('Presentations Ready!', 'All presentations created. Finish and Review are now available.', '✅', 5000);
+                    console.log('✅ Presentations ready - buttons enabled!');
+                    eventSource.close();
+                    eventSource = null;
+                }
+            };
+
+            eventSource.onerror = (error) => {
+                console.error('📡 SSE connection error:', error);
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+            };
+        }
+
+        function enableAllButtons() {
+            // Enable Finish and Review buttons on all depth-1 nodes
+            const depth1Nodes = nodes.filter(n => n.depth === 1);
+            depth1Nodes.forEach(node => {
+                if (node.el) {
+                    const finishBtn = node.el.querySelector('.expand');
+                    const reviewBtn = node.el.querySelector('.review');
+
+                    if (finishBtn && finishBtn.textContent === 'Finish') {
+                        finishBtn.disabled = false;
+                        console.log(`✅ Enabled Finish for ${node.text}`);
+                    }
+                    if (reviewBtn) {
+                        reviewBtn.disabled = false;
+                        console.log(`✅ Enabled Review for ${node.text}`);
+                    }
+                }
+            });
+        }
+
+        // Cleanup SSE connection on page unload
+        window.addEventListener('beforeunload', () => {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+
+        // Change Request Modal Functions
+        window.openChangeModal = function() {
+            const modal = $('changeModal');
+            modal.classList.remove('hidden');
+            // Focus textarea
+            const textarea = $('changeInput');
+            setTimeout(() => textarea.focus(), 100);
+        }
+
+        window.closeChangeModal = function() {
+            const modal = $('changeModal');
+            modal.classList.add('hidden');
+        }
+
+        window.sendChangeMessage = function() {
+            const textarea = $('changeInput');
+            const content = textarea.value.trim();
+
+            if (!content) return;
+
+            // Add user message
+            changeMessages.push({
+                role: 'user',
+                content: content,
+                timestamp: new Date()
+            });
+
+            // Clear input
+            textarea.value = '';
+
+            // Render messages
+            renderChangeMessages();
+
+            // Placeholder: Later this will call AI endpoint
+            // For now, just add a placeholder response
+            setTimeout(() => {
+                changeMessages.push({
+                    role: 'assistant',
+                    content: 'Thank you for your request. Changes will be processed here once the AI integration is complete.',
+                    timestamp: new Date()
+                });
+                renderChangeMessages();
+            }, 500);
+        }
+
+        function renderChangeMessages() {
+            const container = $('changeMessages');
+            container.innerHTML = '';
+
+            if (changeMessages.length === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.cssText = 'text-align: center; color: var(--text-dim); padding: 40px 20px;';
+                emptyMsg.innerHTML = '<p>No messages yet.<br><br>Describe what you\'d like to change about the presentation.</p>';
+                container.appendChild(emptyMsg);
+                return;
+            }
+
+            changeMessages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `message ${msg.role}`;
+                div.innerHTML = `<div class="message-content">${escapeHtml(msg.content)}</div>`;
+                container.appendChild(div);
+            });
+
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Handle Enter key in textarea
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = $('changeInput');
+            if (textarea) {
+                textarea.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendChangeMessage();
+                    }
+                });
+            }
+        });
+
+        // Variant Panel Management
+        let presentationData = null;
+        let selectedVariants = {
+            case_studies: '4slides',
+            pnl: 'default',
+            angles: 'default'
+        };
+
+        async function loadPresentationData() {
+            try {
+                const response = await fetch('/presentation-urls.json');
+                if (!response.ok) throw new Error('No presentation data found');
+                presentationData = await response.json();
+                console.log('📊 Loaded presentation data:', presentationData);
+            } catch (error) {
+                console.error('Failed to load presentation data:', error);
+            }
+        }
+
+        window.openVariantPanel = function(nodeType) {
+            if (!presentationData || !presentationData.presentations[nodeType]) {
+                console.error('No presentation data for type:', nodeType);
+                return;
+            }
+
+            const panel = $('variantPanel');
+            const titleEl = $('variantPanelTitle');
+            const cardsContainer = $('variantCards');
+
+            const slideData = presentationData.presentations[nodeType];
+            const slideName = nodeType === 'case_studies' ? 'Case Studies' :
+                             nodeType === 'pnl' ? 'PnL' : 'Angles';
+
+            titleEl.textContent = `Choose ${slideName} Variant`;
+
+            renderVariantCards(nodeType, slideData.variants);
+
+            panel.classList.remove('hidden');
+        }
+
+        window.closeVariantPanel = function() {
+            const panel = $('variantPanel');
+            panel.classList.add('hidden');
+        }
+
+        function renderVariantCards(slideType, variants) {
+            const cardsContainer = $('variantCards');
+            cardsContainer.innerHTML = '';
+
+            variants.forEach(variant => {
+                const isSelected = selectedVariants[slideType] === variant.id;
+                const card = document.createElement('div');
+                card.className = `variant-card ${isSelected ? 'selected' : ''}`;
+                card.onclick = () => selectVariant(slideType, variant.id);
+
+                card.innerHTML = `
+                    <div class="variant-card-header">
+                        <div class="variant-card-title">${variant.name}</div>
+                        <div class="variant-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="variant-card-buttons">
+                        <button class="variant-btn" onclick="event.stopPropagation(); window.open('${variant.url}', '_blank')">Review</button>
+                        <button class="variant-btn primary" onclick="event.stopPropagation(); selectVariant('${slideType}', '${variant.id}')">Select</button>
+                    </div>
+                `;
+
+                cardsContainer.appendChild(card);
+            });
+        }
+
+        function selectVariant(slideType, variantId) {
+            selectedVariants[slideType] = variantId;
+            console.log('✅ Selected variant:', slideType, variantId);
+
+            if (presentationData && presentationData.presentations[slideType]) {
+                renderVariantCards(slideType, presentationData.presentations[slideType].variants);
+            }
+
+            showToast('Variant Selected', `${slideType} variant has been updated`, '✨', 2000);
+        }
+        const viewport = $('viewport'), nodesEl = $('nodes'), linesEl = $('lines'), emptyEl = $('empty'), headerEl = $('header');
+        $('input').addEventListener('keypress', e => { if (e.key === 'Enter') submit(); });
+        $('go').addEventListener('click', submit);
+
+        const MIN_ZOOM = 0.2, MAX_ZOOM = 3, SCROLL_SENSITIVITY = 0.001, MOMENTUM_FRICTION = 0.92, MOMENTUM_MIN = 0.5;
+        let isDragging = false, dragStart = { x: 0, y: 0 }, lastMouse = { x: 0, y: 0 }, velocity = { x: 0, y: 0 }, lastDragTime = 0, momentumRAF = null;
+
+        function getEventLocation(e) {
+            if (e.touches && e.touches.length === 1) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            if (e.touches && e.touches.length === 2) return { x: (e.touches[0].clientX + e.touches[1].clientX) / 2, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+            return { x: e.clientX, y: e.clientY };
+        }
+        function screenToWorld(screenX, screenY) { return { x: (screenX - offset.x) / zoom, y: (screenY - offset.y) / zoom }; }
+        function onPointerDown(e) {
+            if (e.target.closest('.node')) return;
+            isDragging = true; cancelMomentum();
+            const loc = getEventLocation(e);
+            dragStart = { x: loc.x / zoom - offset.x / zoom, y: loc.y / zoom - offset.y / zoom };
+            lastMouse = loc; lastDragTime = Date.now(); velocity = { x: 0, y: 0 };
+            document.body.style.cursor = 'grabbing';
+        }
+        function onPointerMove(e) {
+            if (!isDragging) return;
+            const loc = getEventLocation(e), now = Date.now(), dt = now - lastDragTime;
+            offset.x = (loc.x / zoom - dragStart.x) * zoom; offset.y = (loc.y / zoom - dragStart.y) * zoom;
+            if (dt > 0) { velocity.x = (loc.x - lastMouse.x) / dt * 16; velocity.y = (loc.y - lastMouse.y) / dt * 16; }
+            lastMouse = loc; lastDragTime = now; applyTransform();
+        }
+        function onPointerUp() {
+            if (!isDragging) return; isDragging = false; document.body.style.cursor = '';
+            if (Math.abs(velocity.x) > MOMENTUM_MIN || Math.abs(velocity.y) > MOMENTUM_MIN) startMomentum();
+            initialPinchDistance = null; lastZoom = zoom;
+        }
+        function startMomentum() {
+            cancelMomentum();
+            function animate() {
+                velocity.x *= MOMENTUM_FRICTION; velocity.y *= MOMENTUM_FRICTION;
+                offset.x += velocity.x; offset.y += velocity.y; applyTransform();
+                if (Math.abs(velocity.x) > MOMENTUM_MIN || Math.abs(velocity.y) > MOMENTUM_MIN) momentumRAF = requestAnimationFrame(animate);
+            }
+            momentumRAF = requestAnimationFrame(animate);
+        }
+        function cancelMomentum() { if (momentumRAF) { cancelAnimationFrame(momentumRAF); momentumRAF = null; } }
+        function onWheel(e) {
+            e.preventDefault(); cancelMomentum();
+            const loc = getEventLocation(e), delta = -e.deltaY * SCROLL_SENSITIVITY;
+            const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * (1 + delta)));
+            const worldBefore = screenToWorld(loc.x, loc.y); zoom = newZoom;
+            const worldAfter = screenToWorld(loc.x, loc.y);
+            offset.x += (worldAfter.x - worldBefore.x) * zoom; offset.y += (worldAfter.y - worldBefore.y) * zoom;
+            applyTransform();
+        }
+        let initialPinchDistance = null, lastZoom = zoom;
+        function handlePinch(e) {
+            if (e.touches.length !== 2) return; e.preventDefault();
+            const t1 = { x: e.touches[0].clientX, y: e.touches[0].clientY }, t2 = { x: e.touches[1].clientX, y: e.touches[1].clientY };
+            const dist = Math.hypot(t1.x - t2.x, t1.y - t2.y), center = { x: (t1.x + t2.x) / 2, y: (t1.y + t2.y) / 2 };
+            if (initialPinchDistance === null) { initialPinchDistance = dist; lastZoom = zoom; }
+            else {
+                const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, lastZoom * dist / initialPinchDistance));
+                const worldBefore = screenToWorld(center.x, center.y); zoom = newZoom;
+                const worldAfter = screenToWorld(center.x, center.y);
+                offset.x += (worldAfter.x - worldBefore.x) * zoom; offset.y += (worldAfter.y - worldBefore.y) * zoom;
+                applyTransform();
+            }
+        }
+        const canvas = document.querySelector('.canvas');
+        canvas.addEventListener('mousedown', onPointerDown);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
+        canvas.addEventListener('wheel', onWheel, { passive: false });
+        canvas.addEventListener('touchstart', e => { if (e.touches.length === 1) onPointerDown(e); else { isDragging = false; handlePinch(e); } }, { passive: false });
+        canvas.addEventListener('touchmove', e => { if (e.touches.length === 2) handlePinch(e); else onPointerMove(e); }, { passive: false });
+        canvas.addEventListener('touchend', onPointerUp);
+        canvas.style.cursor = 'grab';
+
+        function submit() {
+            const input = $('input'), text = input.value.trim();
+            if (!text) return;
+            headerEl.classList.add('hidden'); emptyEl.classList.add('hidden');
+            addRoot(text); input.value = '';
+        }
+        function addRoot(text) {
+            const node = { id: nextId++, text, depth: 0, x: 100, y: window.innerHeight / 2 - 50, parent: null, children: [], el: null };
+            nodes.push(node); renderNode(node);
+            requestAnimationFrame(() => node.el.classList.add('visible'));
+            panTo(node); setTimeout(() => genChildren(node), 500);
+        }
+        async function genChildren(parent) {
+            const ideas = SLIDE_NAMES, newNodes = [];
+            for (let i = 0; i < ideas.length; i++) {
+                const y = parent.y + (i - (ideas.length - 1) / 2) * V_GAP;
+                const node = { id: nextId++, text: ideas[i], depth: parent.depth + 1, x: parent.x + H_GAP, y, parent, children: [], el: null };
+                parent.children.push(node); nodes.push(node); renderNode(node); newNodes.push(node);
+            }
+            await new Promise(r => setTimeout(r, 50));
+            await Promise.all(newNodes.map(node => animateConnection(parent, node)));
+            rebalance();
+            const mid = parent.children[Math.floor(parent.children.length / 2)];
+            if (mid) panTo(mid);
+
+            // Auto-trigger presentation creation for initial 3 slides (when parent is depth 0)
+            if (parent.depth === 0) {
+                console.log('🚀 Auto-triggering ALL 3 presentations in parallel (headless)...');
+                showToast('Creating Presentations', 'Creating all 3 presentations in parallel (headless mode)...', '🚀', 5000);
+
+                // Trigger batch creation (all 3 at once in headless mode)
+                triggerBatchCreation();
+            }
+        }
+
+        // Trigger batch creation of all 3 presentations in parallel
+        async function triggerBatchCreation() {
+            try {
+                // Reset state
+                presentationsCreated = false;
+
+                // Start listening for completion notification via SSE
+                startListeningForCompletion();
+
+                console.log('📋 Calling /api/create-all-parallel...');
+                const response = await fetch('http://localhost:3000/api/create-all-parallel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Batch creation started!');
+                    console.log(`📊 Creating: ${result.presentations.join(', ')}`);
+                    showToast(
+                        'Presentations Creating',
+                        'All 3 presentations are being created. You\'ll be notified instantly when ready.',
+                        '⏳',
+                        8000
+                    );
+                } else {
+                    console.error('❌ Failed to start batch creation');
+                    showToast('Failed to Start', 'Could not start batch creation. Check server logs.', '❌', 5000);
+                }
+            } catch (error) {
+                console.error('❌ Error calling batch endpoint:', error);
+                showToast('Connection Error', 'Could not connect to server. Is it running?', '❌', 5000);
+            }
+        }
+        function renderNode(node) {
+            const el = document.createElement('div');
+            el.className = 'node' + (node.depth === 0 ? ' is-root' : '');
+            el.style.left = node.x + 'px'; el.style.top = node.y + 'px';
+
+            // Determine badge
+            let badge, bc;
+            if (node.isFinalSlide) {
+                badge = 'Final';
+                bc = 'final'; // Purple badge for Final Slide
+            } else {
+                badge = node.depth === 0 ? 'Input' : node.depth === 1 ? 'Slide' : node.depth === 2 ? 'Finished' : 'Output';
+                bc = node.depth === 0 ? '' : node.depth === 1 ? 'b' : node.depth === 2 ? 'finished' : 'l';
+            }
+
+            // Build HTML based on node type
+            let buttonsHtml;
+            if (node.isFinalSlide) {
+                // Final Slide: "Review" and "Change" buttons
+                buttonsHtml = '<div class="btns"><button class="btn review">Review</button><button class="btn change">Change</button></div>';
+            } else if (node.depth === 2) {
+                // Finished nodes: only "Open in Pitch" button
+                buttonsHtml = '<div class="btns"><button class="btn open-pitch">Open in Pitch</button></div>';
+            } else {
+                // Other nodes: Expand/Finish + Review + Change buttons
+                if (node.depth === 1) {
+                    // Depth 1: "Finish", "Review", and "Change" (Finish and Review disabled initially)
+                    const disabled = !presentationsCreated ? ' disabled' : '';
+                    buttonsHtml = '<div class="btns"><button class="btn expand"' + disabled + '>Finish</button><button class="btn review"' + disabled + '>Review</button><button class="btn change">Change</button></div>';
+                } else {
+                    // Other depths: "Expand" and "Review" buttons
+                    buttonsHtml = '<div class="btns"><button class="btn expand">Expand</button><button class="btn review">Review</button></div>';
+                }
+            }
+
+            el.innerHTML = '<div class="dot dot-left"></div><div class="dot dot-right"></div><span class="badge ' + bc + '">' + badge + '</span><div class="node-text">' + node.text + '</div>' + buttonsHtml;
+
+            // Attach event handlers based on node type
+            if (node.isFinalSlide) {
+                el.querySelector('.review').onclick = async (e) => {
+                    e.stopPropagation();
+                    try {
+                        const response = await fetch('combined-presentation-url.json');
+                        if (!response.ok) {
+                            throw new Error('No combined presentation URL found. Please create the final presentation first.');
+                        }
+                        const data = await response.json();
+                        if (!data.url) {
+                            throw new Error('URL not found in saved file.');
+                        }
+                        console.log('🔗 Opening combined presentation...');
+                        console.log(`   URL: ${data.url}`);
+                        window.open(data.url, '_blank');
+                        showToast('Opening Combined Presentation', 'Opening final presentation in new tab...', '🔗', 3000);
+                    } catch (error) {
+                        console.error('❌ Error opening combined presentation:', error);
+                        showToast('Cannot Open', error.message, '❌', 5000);
+                    }
+                };
+                el.querySelector('.change').onclick = e => { e.stopPropagation(); openChangeModal(); };
+            } else if (node.depth === 2) {
+                const openBtn = el.querySelector('.open-pitch');
+                openBtn.onclick = e => { e.stopPropagation(); openInPitch(node); };
+            } else {
+                const expandBtn = el.querySelector('.expand');
+                expandBtn.onclick = e => { e.stopPropagation(); expandNode(node); };
+                el.querySelector('.review').onclick = e => { e.stopPropagation(); reviewNode(node); };
+
+                // Depth 1 nodes have "Change" button
+                if (node.depth === 1) {
+                    el.querySelector('.change').onclick = e => { e.stopPropagation(); openChangeModal(); };
+                }
+            }
+
+            // Click handler: depth-1 nodes open variant panel if presentations are ready
+            el.onclick = () => {
+                if (node.depth === 1 && presentationsCreated) {
+                    const config = getSlideConfig(node.text);
+                    if (config) {
+                        openVariantPanel(config.key);
+                    }
+                } else {
+                    panTo(node);
+                }
+            };
+            nodesEl.appendChild(el); node.el = el;
+        }
+        function animateConnection(parent, child) {
+            return new Promise(resolve => {
+                const pEl = parent.el, cEl = child.el;
+                const pH = pEl ? pEl.offsetHeight : 80, cH = cEl ? cEl.offsetHeight : 80;
+                const x1 = parent.x + NODE_W, y1 = parent.y + pH / 2, x2 = child.x, y2 = child.y + cH / 2;
+                const mx = x1 + (x2 - x1) / 2;
+                
+                // FIX: For horizontal lines, add curve to prevent degenerate bezier
+                let cy1 = y1, cy2 = y2;
+                if (Math.abs(y1 - y2) < 5) { cy1 = y1 - 25; cy2 = y2 - 25; }
+                
+                const d = 'M ' + x1 + ' ' + y1 + ' C ' + mx + ' ' + cy1 + ', ' + mx + ' ' + cy2 + ', ' + x2 + ' ' + y2;
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', d); path.setAttribute('class', 'line');
+                linesEl.appendChild(path);
+                conns.push({ parent, child, el: path });
+                
+                // Force layout before getting length
+                path.getBoundingClientRect();
+                
+                const length = path.getTotalLength();
+                const safeLength = length > 0 ? length : (x2 - x1);
+                
+                path.style.strokeDasharray = safeLength; 
+                path.style.strokeDashoffset = safeLength;
+                
+                const startTime = performance.now();
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime, progress = Math.min(elapsed / ANIM_DURATION, 1);
+                    const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                    path.style.strokeDashoffset = safeLength * (1 - eased);
+                    if (eased >= 0.80 && !child.el.classList.contains('visible')) child.el.classList.add('visible');
+                    if (progress < 1) requestAnimationFrame(animate);
+                    else { path.style.strokeDashoffset = 0; resolve(); }
+                }
+                requestAnimationFrame(animate);
+            });
+        }
+        async function expandNode(node) {
+            // Special handling for depth 1 nodes (Case Studies, PnL, Angles)
+            // Creates/connects to shared "Final Slide" node
+            if (node.depth === 1) {
+                // Check if presentations are ready
+                if (!presentationsCreated) {
+                    showToast('Not Ready Yet', 'Please wait for presentations to be created first.', '⏳', 3000);
+                    return;
+                }
+
+                // Create Final Slide node if it doesn't exist
+                if (!finalSlideNode) {
+                    // Calculate position: average Y of all depth 1 nodes
+                    const depth1Nodes = nodes.filter(n => n.depth === 1);
+                    const avgY = depth1Nodes.reduce((sum, n) => sum + n.y, 0) / depth1Nodes.length;
+
+                    finalSlideNode = {
+                        id: nextId++,
+                        text: 'Final Slide',
+                        depth: 2,
+                        x: depth1Nodes[0].x + H_GAP,
+                        y: avgY,
+                        parent: null, // Multiple parents (all 3 slides)
+                        children: [],
+                        el: null,
+                        isFinalSlide: true // Special marker
+                    };
+                    nodes.push(finalSlideNode);
+                    renderNode(finalSlideNode);
+                }
+
+                // Get ALL depth-1 nodes and connect them ALL to Final Slide
+                const depth1Nodes = nodes.filter(n => n.depth === 1);
+                const animationPromises = [];
+
+                for (const d1Node of depth1Nodes) {
+                    // Only connect if not already connected
+                    if (!d1Node.children.includes(finalSlideNode)) {
+                        d1Node.children.push(finalSlideNode);
+
+                        // Disable button and update text
+                        const btn = d1Node.el?.querySelector('.expand');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.textContent = 'Finishing...';
+                        }
+
+                        // Queue animation
+                        animationPromises.push(animateConnection(d1Node, finalSlideNode));
+                    }
+                }
+
+                // Animate ALL connections simultaneously
+                await new Promise(r => setTimeout(r, 50));
+                await Promise.all(animationPromises);
+
+                // Update all buttons to "Finished ✓"
+                for (const d1Node of depth1Nodes) {
+                    const btn = d1Node.el?.querySelector('.expand');
+                    if (btn) {
+                        btn.textContent = 'Finished ✓';
+                    }
+                }
+
+                rebalance();
+                panTo(finalSlideNode);
+
+                // AUTO-TRIGGER COMBINED PRESENTATION CREATION
+                createCombinedPresentation();
+
+                showToast(
+                    'Creating Combined Presentation',
+                    'All 3 slides connected. Creating combined presentation now...',
+                    '🎯',
+                    8000
+                );
+
+                return;
+            }
+
+            // Default behavior for other depths (expand with Output nodes)
+            const idx = node.children.length;
+            const outputNode = {
+                id: nextId++,
+                text: 'Output ' + (idx + 1),
+                depth: node.depth + 1,
+                x: node.x + H_GAP,
+                y: node.y + (idx - node.children.length / 2) * V_GAP,
+                parent: node,
+                children: [],
+                el: null
+            };
+            node.children.push(outputNode);
+            nodes.push(outputNode);
+            renderNode(outputNode);
+
+            await new Promise(r => setTimeout(r, 50));
+            await animateConnection(node, outputNode);
+            rebalance();
+            panTo(outputNode);
+        }
+        async function openInPitch(node) {
+            // Node is a finished node (depth 2), parent is the slide type (depth 1)
+            const slideNode = node.parent;
+            if (!slideNode || slideNode.depth !== 1) {
+                showToast('Error', 'Cannot determine slide type', '❌', 3000);
+                return;
+            }
+
+            // Get slide configuration from parent node
+            const slideConfig = getSlideConfig(slideNode.text);
+            if (!slideConfig) {
+                showToast('Error', 'Unknown slide type', '❌', 3000);
+                return;
+            }
+
+            // Trigger automation via Express API
+            try {
+                const openBtn = node.el.querySelector('.open-pitch');
+                if (openBtn) {
+                    openBtn.disabled = true;
+                    openBtn.textContent = 'Opening...';
+                }
+
+                showToast('Creating Presentation', `Creating new ${slideNode.text} presentation...`, '🚀', 3000);
+
+                const response = await fetch(`http://localhost:3000/api/create-new/${slideConfig.key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (openBtn) {
+                    openBtn.disabled = false;
+                    openBtn.textContent = 'Open in Pitch';
+                }
+
+                showToast(
+                    'Creating Presentation!',
+                    `Creating new ${slideNode.text} presentation from dashboard. Browser will open shortly.`,
+                    '✅',
+                    8000
+                );
+
+                console.log('━'.repeat(60));
+                console.log('✅ Opening slide in Pitch.com');
+                console.log(`📋 Slide: ${result.displayName}`);
+                console.log(`📄 Data file: ${result.dataFile}`);
+                console.log('🌐 Browser launching...');
+                console.log('━'.repeat(60));
+
+            } catch (error) {
+                console.error('❌ Failed to open in Pitch:', error);
+
+                const openBtn = node.el.querySelector('.open-pitch');
+                if (openBtn) {
+                    openBtn.disabled = false;
+                    openBtn.textContent = 'Open in Pitch';
+                }
+
+                showToast(
+                    'Failed to Open',
+                    `Error: ${error.message}. Make sure the server is running (npm run server)`,
+                    '❌',
+                    10000
+                );
+            }
+        }
+        async function createCombinedPresentation() {
+            try {
+                console.log('🎯 Creating combined presentation with selected variants...');
+                console.log('📋 Selected variants:', selectedVariants);
+
+                showToast('Creating Combined Presentation', 'Creating one presentation with selected variants...', '🎯', 5000);
+
+                const response = await fetch('http://localhost:3000/api/create-combined-with-variants', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ variants: selectedVariants })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                console.log('✅ Combined presentation started!');
+                console.log(`📂 Variant files:`, result.variants);
+
+                showToast(
+                    'Combined Presentation Creating',
+                    'Creating one presentation with selected variants. Check server logs for progress and final URL.',
+                    '✅',
+                    8000
+                );
+
+            } catch (error) {
+                console.error('❌ Error creating combined presentation:', error);
+                showToast(
+                    'Failed to Create',
+                    `Error: ${error.message}. Make sure the server is running.`,
+                    '❌',
+                    5000
+                );
+            }
+        }
+
+        async function reviewNode(node) {
+            // Special handling for depth 1 nodes (Case Studies, PnL, Angles) - Open presentation URL
+            if (node.depth === 1) {
+                // Check if presentations are ready
+                if (!presentationsCreated) {
+                    showToast('Not Ready Yet', 'Please wait for presentations to be created first.', '⏳', 3000);
+                    return;
+                }
+
+                const slideConfig = getSlideConfig(node.text);
+                if (!slideConfig) {
+                    showToast('Error', 'Unknown slide type', '❌', 3000);
+                    return;
+                }
+
+                try {
+                    // Fetch saved URLs from JSON file
+                    const response = await fetch('http://localhost:3000/presentation-urls.json');
+                    if (!response.ok) {
+                        throw new Error('URLs file not found. Have presentations been created yet?');
+                    }
+
+                    const data = await response.json();
+                    const presentation = data.presentations[slideConfig.key];
+
+                    if (!presentation || !presentation.variants || presentation.variants.length === 0) {
+                        throw new Error(`No URL found for ${node.text}. Presentation may still be creating.`);
+                    }
+
+                    // Get the selected variant (or first variant if no selection)
+                    const selectedVariantId = presentation.selected || presentation.variants[0].id;
+                    const selectedVariant = presentation.variants.find(v => v.id === selectedVariantId);
+
+                    if (!selectedVariant || !selectedVariant.url) {
+                        throw new Error(`No URL found for ${node.text}. Presentation may still be creating.`);
+                    }
+
+                    // Open presentation in new tab
+                    console.log(`🔗 Opening ${node.text} presentation...`);
+                    console.log(`   Variant: ${selectedVariant.name}`);
+                    console.log(`   URL: ${selectedVariant.url}`);
+                    window.open(selectedVariant.url, '_blank');
+
+                    showToast(
+                        'Opening Presentation',
+                        `Opening ${node.text} in new tab...`,
+                        '🔗',
+                        3000
+                    );
+
+                } catch (error) {
+                    console.error(`❌ Error opening presentation:`, error);
+                    showToast(
+                        'Cannot Open',
+                        error.message,
+                        '❌',
+                        5000
+                    );
+                }
+
+                return;
+            }
+
+            // Default behavior for other nodes - remove children
+            const removeChildren = n => {
+                n.children.forEach(child => {
+                    removeChildren(child);
+                    const idx = nodes.indexOf(child); if (idx > -1) nodes.splice(idx, 1);
+                    if (child.el) child.el.remove();
+                    conns = conns.filter(c => { if (c.child === child) { if (c.el) c.el.remove(); return false; } return true; });
+                });
+                n.children = [];
+            };
+            removeChildren(node); rebalance(); panTo(node);
+        }
+        function updateLines() {
+            conns.forEach(conn => {
+                if (conn.el) {
+                    const pEl = conn.parent.el, cEl = conn.child.el;
+                    const pH = pEl ? pEl.offsetHeight : 80, cH = cEl ? cEl.offsetHeight : 80;
+                    const x1 = conn.parent.x + NODE_W, y1 = conn.parent.y + pH / 2, x2 = conn.child.x, y2 = conn.child.y + cH / 2;
+                    const mx = x1 + (x2 - x1) / 2;
+                    let cy1 = y1, cy2 = y2;
+                    if (Math.abs(y1 - y2) < 5) { cy1 = y1 - 25; cy2 = y2 - 25; }
+                    conn.el.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' C ' + mx + ' ' + cy1 + ', ' + mx + ' ' + cy2 + ', ' + x2 + ' ' + y2);
+                    const length = conn.el.getTotalLength();
+                    conn.el.style.strokeDasharray = length > 0 ? length : (x2 - x1);
+                    conn.el.style.strokeDashoffset = 0;
+                }
+            });
+        }
+        function rebalance() {
+            nodes.forEach(n => { if (n.el) { n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px'; } });
+            updateLines();
+        }
+        function panTo(node) {
+            cancelMomentum();
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const targetX = -node.x * zoom + vw / 3, targetY = -node.y * zoom + vh / 2 - 40;
+            const startX = offset.x, startY = offset.y, startTime = performance.now(), duration = 500;
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime, progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                offset.x = startX + (targetX - startX) * eased; offset.y = startY + (targetY - startY) * eased;
+                applyTransform();
+                if (progress < 1) requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+        }
+        function applyTransform() { viewport.style.transform = 'translate(' + offset.x + 'px, ' + offset.y + 'px) scale(' + zoom + ')'; }
+    </script>
+</body>
+</html>

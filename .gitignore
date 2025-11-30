@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+venv/
+*.log
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Runtime-generated files
+frontend/combined-presentation-url.json
+frontend/presentation-urls.json
+
+# Claude Code settings
+.claude/
+CLAUDE.md
+
+# Batch scripts and screenshots
+*.bat
+*.png

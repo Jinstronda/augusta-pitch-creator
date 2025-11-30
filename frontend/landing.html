@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gui Slide Creation 2.0 | AI-First Presentations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        background: '#050507',
+                        surface: '#0f0f13',
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                        accent: '#ec4899',
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'hero-glow': 'conic-gradient(from 180deg at 50% 50%, #2a8af6 0deg, #a853ba 180deg, #e92a67 360deg)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-shine: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: #050507;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Premium Glassmorphism */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animated Backgrounds */
+        .aurora-blob {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(20px, -20px) scale(1.1);
+            }
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Grid Background */
+        .grid-bg {
+            background-size: 50px 50px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #050507;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-primary/30 selection:text-white">
+
+    <!-- Background Elements -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+        <div class="aurora-blob w-[500px] h-[500px] bg-blue-600/20 top-[-10%] left-[-10%] rounded-full"></div>
+        <div
+            class="aurora-blob w-[600px] h-[600px] bg-purple-600/20 bottom-[-10%] right-[-10%] rounded-full animation-delay-2000">
+        </div>
+        <div class="absolute inset-0 grid-bg z-[-1]"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="glass-panel rounded-full px-6 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="font-display font-bold text-xl tracking-tight">GuiSlide<span
+                            class="text-primary">.ai</span></span>
+                </div>
+                <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
+                    <a href="#features" class="hover:text-white transition-colors">Features</a>
+                    <a href="#how-it-works" class="hover:text-white transition-colors">How it works</a>
+                    <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+                </div>
+                <button
+                    class="bg-white text-black px-5 py-2 rounded-full font-medium text-sm hover:scale-105 transition-transform">Get
+                    Started</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 animate-fade-in-up">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-xs font-medium text-gray-300 uppercase tracking-wider">v2.0 Now Available</span>
+            </div>
+
+            <h1 class="font-display text-6xl md:text-8xl font-bold leading-tight mb-6 tracking-tight">
+                Presentations that <br>
+                <span class="text-gradient">Feel Alive</span>
+            </h1>
+
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 font-light leading-relaxed">
+                Transform simple prompts into award-winning slide decks.
+                Powered by organic AI that grows with your ideas.
+            </p>
+
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-20">
+                <button
+                    class="group relative px-8 py-4 bg-primary rounded-full text-white font-semibold overflow-hidden transition-all hover:scale-105">
+                    <div
+                        class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    </div>
+                    <span class="relative flex items-center gap-2">
+                        Start Creating Free
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </span>
+                </button>
+                <button class="px-8 py-4 glass-card rounded-full text-white font-medium hover:bg-white/5">
+                    View Showreel
+                </button>
+            </div>
+
+            <!-- Hero Visual -->
+            <div
+                class="relative w-full max-w-5xl mx-auto aspect-video glass-panel rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
+                <div class="absolute inset-0 bg-gradient-to-br from-gray-900 to-black"></div>
+                <!-- Mock UI -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center">
+                        <div
+                            class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-blue-500 to-purple-500 animate-spin-slow">
+                        </div>
+                        <div class="text-gray-500 font-mono text-sm">Generating strategic angles...</div>
+                    </div>
+                </div>
+                <!-- Floating Elements -->
+                <div class="absolute top-10 left-10 p-4 glass-card rounded-xl animate-float">
+                    <div class="w-32 h-2 bg-white/10 rounded mb-2"></div>
+                    <div class="w-20 h-2 bg-white/10 rounded"></div>
+                </div>
+                <div class="absolute bottom-10 right-10 p-4 glass-card rounded-xl animate-float animation-delay-1000">
+                    <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mb-2">
+                        <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="text-xs text-gray-400">Slide Generated</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-32 relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-20">
+                <h2 class="font-display text-4xl md:text-5xl font-bold mb-6">Designed for <span
+                        class="text-white">Impact</span></h2>
+                <p class="text-gray-400 max-w-xl mx-auto">We don't just put text on slides. We craft narratives that
+                    convert.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card p-8 rounded-3xl relative overflow-hidden group">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors">
+                    </div>
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center mb-6 text-blue-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Organic Branching</h3>
+                    <p class="text-gray-400 leading-relaxed">Watch your ideas grow. Our AI generates multiple strategic
+                        angles from a single prompt, visualized as a living tree.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-card p-8 rounded-3xl relative overflow-hidden group">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-colors">
+                    </div>
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center mb-6 text-purple-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Strategic Angles</h3>
+                    <p class="text-gray-400 leading-relaxed">Don't settle for one approach. Compare "Case Study",
+                        "Financial Impact", and "Visionary" narratives side-by-side.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-card p-8 rounded-3xl relative overflow-hidden group">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl group-hover:bg-pink-500/20 transition-colors">
+                    </div>
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center mb-6 text-pink-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Premium Export</h3>
+                    <p class="text-gray-400 leading-relaxed">Export to PowerPoint, Google Slides, or PDF with
+                        pixel-perfect layouts that look like they cost $5k.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-32 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="font-display text-4xl md:text-5xl font-bold mb-8">From Thought to <br><span
+                            class="text-gradient">Masterpiece</span></h2>
+
+                    <div class="space-y-8">
+                        <div class="flex gap-6 group">
+                            <div
+                                class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center font-bold text-lg group-hover:bg-white group-hover:text-black transition-colors">
+                                1</div>
+                            <div>
+                                <h3 class="text-xl font-bold mb-2">Input your topic</h3>
+                                <p class="text-gray-400">Simply type what you want to present. "Q3 Earnings" or "New
+                                    Product Launch".</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-6 group">
+                            <div
+                                class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center font-bold text-lg group-hover:bg-white group-hover:text-black transition-colors">
+                                2</div>
+                            <div>
+                                <h3 class="text-xl font-bold mb-2">Watch it grow</h3>
+                                <p class="text-gray-400">Our organic AI engine branches out, exploring different
+                                    narrative structures in real-time.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-6 group">
+                            <div
+                                class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center font-bold text-lg group-hover:bg-white group-hover:text-black transition-colors">
+                                3</div>
+                            <div>
+                                <h3 class="text-xl font-bold mb-2">Refine & Export</h3>
+                                <p class="text-gray-400">Select the best angle, tweak the content, and download your
+                                    deck instantly.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-3xl rounded-full">
+                    </div>
+                    <div
+                        class="glass-panel rounded-2xl p-6 relative z-10 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                        <!-- Abstract UI representation -->
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="h-8 bg-white/10 rounded w-3/4"></div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="h-32 bg-white/5 rounded-lg border border-white/5"></div>
+                                <div class="h-32 bg-white/5 rounded-lg border border-white/5"></div>
+                                <div class="h-32 bg-white/5 rounded-lg border border-white/5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-32 relative">
+        <div class="max-w-5xl mx-auto px-6 text-center">
+            <div class="glass-panel rounded-3xl p-12 md:p-20 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+                <div class="relative z-10">
+                    <h2 class="font-display text-4xl md:text-6xl font-bold mb-8">Ready to <span
+                            class="text-white">Wow</span> Your Audience?</h2>
+                    <p class="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">Join 10,000+ founders and executives
+                        creating slides that actually convert.</p>
+                    <button
+                        class="px-10 py-5 bg-white text-black rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+                        Get Started for Free
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-12 bg-black/50 backdrop-blur-lg">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                <span class="font-display font-bold text-xl">GuiSlide<span class="text-primary">.ai</span></span>
+            </div>
+            <div class="text-gray-500 text-sm">
+                &copy; 2025 Gui Slide Creation. All rights reserved.
+            </div>
+            <div class="flex gap-6">
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">Twitter</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">LinkedIn</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero Animation
+        gsap.from("h1", { duration: 1, y: 50, opacity: 0, ease: "power3.out", delay: 0.2 });
+        gsap.from("p", { duration: 1, y: 30, opacity: 0, ease: "power3.out", delay: 0.4 });
+
+        // Feature Cards Stagger
+        gsap.from(".glass-card", {
+            scrollTrigger: {
+                trigger: "#features",
+                start: "top 80%",
+            },
+            y: 50,
+            opacity: 0,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: "power3.out"
+        });
+
+        // Navbar Blur Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2');
+            } else {
+                nav.classList.remove('py-2');
+            }
+        });
+    </script>
+</body>
+
+</html>
